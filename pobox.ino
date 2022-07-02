@@ -8,12 +8,12 @@
 
 const unsigned long WAIT_TIME = 20e3;
 
-char ssid[] = "KUDALIARHITAM";
-char password[] = "kuda@liar!";
+char ssid[] = "THEEEK";
+char password[] = "Kuda@liar!1";
 long deepsleepMin = 2e9;
 
 String chatID = "";
-String token = "";
+String botToken = "";
 
 X509List cert(TELEGRAM_CERTIFICATE_ROOT);
 
@@ -39,7 +39,11 @@ void setup() {
   Serial.begin(115200);
 
   if (!WNetwork.Connect(ssid, password)) {
-    TBot.Init(token, chatID, &cert);
+
+    configTime(0, 0, "pool.ntp.org");
+
+    TBot.Init(botToken, chatID, &cert);
+    delay(500);
     TBot.NotifyButtonPressed();
 
     waitUserResponse();
@@ -53,6 +57,4 @@ void setup() {
   ESP.deepSleep(deepsleepMin);
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-}
+void loop() {}

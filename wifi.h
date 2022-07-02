@@ -1,7 +1,7 @@
 class WNetwork {
 
   private:
-    int _wifiTimeout = 5e3;
+    int _wifiTimeout = 1e4;
     
   public:
 
@@ -12,7 +12,7 @@ class WNetwork {
       WiFi.disconnect();
 
       delay(10);
-      Serial.print("Connecting to WiFi network...");
+      Serial.println("[INFO] Connecting to WiFi network...");
 
       WiFi.begin(ssid, password);
       while ((WiFi.status() != WL_CONNECTED) && (counter < _wifiTimeout)) {
@@ -23,11 +23,11 @@ class WNetwork {
       Serial.println("");
 
       if (WiFi.status() != WL_CONNECTED) {
-        Serial.print("NodeMcu FAIL to connect to WiFi network. Exiting...");
+        Serial.println("[INFO] NodeMcu FAIL to connect to WiFi network. Exiting...");
         return 1;
       }
 
-      Serial.print("NodeMcu connected to WiFi network...");
+      Serial.println("[INFO] NodeMcu connected to WiFi network...");
 
       return 0;
     }

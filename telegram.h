@@ -7,14 +7,14 @@ class TBot {
     WiFiClientSecure _client;
 
     String _allowedUser = "";
-    int _wakeupTime;
+    String _wakeupTime;
     bool _isOpenAuthorized = false;
 
-    void _handleNewMessages(int numNewMessages) {
-      Serial.print("Processing messages: ");
-      Serial.print(numNewMessages);
+    void _handleNewMessages(int numMsg) {
+      Serial.print("[INFO] Processing messages: ");
+      Serial.print(numMsg);
 
-      for (int i = 0; i < numNewMessages; i++) {
+      for (int i = 0; i < numMsg; i++) {
         String chatID = _bot->messages[i].chat_id;
         String date = _bot->messages[i].date;
 
@@ -25,7 +25,29 @@ class TBot {
       }
 
     }
-    
+
+    void _actOnMessage(String text) {
+      if (text = '/POBox open') {
+        _isOpenAuthorized = true;
+        _bot->sendMessage(_chatID, "[PObox] Authorized to open.\nOpening box...");
+      }
+    }
+
+    void _setWakeupTime() {
+      time_t tnow = time(nullptr);
+      while (tnow < 100000) {
+        tnow = time(nullptr);
+        delay(200);
+      }
+      _wakeupTime = String(tnow);
+      Serial.print("[INFO] Wakeup time: ");
+      Serial.println(_wakeupTime);
+    }
+
+    void _setAllowedUser(String chatID) {
+      _allowedUser = chatID;
+    }
+
     bool _isAllowedUser(String chatID) {
       if (chatID == _allowedUser) {
         return true;
@@ -33,42 +55,36 @@ class TBot {
       return false;
     }
 
-    void _setWakeupTime() {
-      _wakeupTime = time(nullptr);
-    }
-
     bool _isMsgDateValid(String date) {
-      //if (date < _wakeupTime){
-      //  return false;
-      //}
+      unsigned long wuTimeLong = atol(_wakeupTime.c_str());
+      unsigned long dateLong = atol(date.c_str());
+
+      if (dateLong < wuTimeLong){
+        return false;
+      }
       return true;
     }
   
-    void _actOnMessage(String text) {
-      if (text = '/open') {
-        _isOpenAuthorized = true;
-        _bot->sendMessage(_chatID, "Authorized to open.\n Opening box...");
-      }
-    }
-
 
   public:
 
     void Init(String token, String chatID, X509List *cert) {
       _chatID = chatID;
-      configTime(0, 0, "pool.ntp.org");
       _setWakeupTime();
+      _setAllowedUser(_chatID);
       _client.setTrustAnchors(cert);
       _bot = new UniversalTelegramBot(token, _client);
     }
 
     bool NotifyButtonPressed() {
-      Serial.println("Notifying Telegram...");
-      return _bot->sendMessage(_chatID, "Button pressed. Requesting to open the Lid. \nTimeout: 60s");
+      Serial.println("[INFO] Notifying Telegram...");
+      return _bot->sendMessage(_chatID, "[POBox] Requesting to open the Lid. Reply with \"/POBox open\" to authorize. \nTimeout: 60s");
     }
 
     void PollNewMessages() {
       int numMsg = _bot->getUpdates(_bot->last_message_received + 1);
+      Serial.println("[DEBUG] Polling msg:");
+      Serial.println(numMsg);
 
       while (numMsg) {
         _handleNewMessages(numMsg);
